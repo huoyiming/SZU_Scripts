@@ -70,6 +70,5 @@ cookies = html.cookies.get_dict()
 cookies['org.springframework.web.servlet.i18n.CookieLocaleResolver.LOCALE']='zh_CN'
 # print(data)
 loginreq=session.post('https://authserver.szu.edu.cn/authserver/login',data=data,headers=headers,cookies=cookies)
-www1=session.get('https://www1.szu.edu.cn/board/infolist.asp',headers=headers)
-www1.encoding='gbk'
-print(www1.text)
+
+#your code here
