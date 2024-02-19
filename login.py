@@ -7,7 +7,7 @@ from base64 import b64encode
 username=''
 password=''
 
-# 生成随机字符串
+# 通过指定的字符集生成特定长度随机字符串，用以AES加密
 _chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678'
 def _rds(len):
     retStr = ''
@@ -15,7 +15,7 @@ def _rds(len):
         retStr += random.choice(_chars)
     return retStr
 
-# 加密
+# AES加密函数
 def _gas(data, key0, iv0):
     key0 = key0.strip()
     key = key0.encode('utf-8')
@@ -24,7 +24,7 @@ def _gas(data, key0, iv0):
     padded_data = pad(data.encode('utf-8'), AES.block_size)
     encrypted_data = cipher.encrypt(padded_data)
     return b64encode(encrypted_data).decode('utf-8')
-
+# 主要函数，调用上述两个函数加密密码
 def encryptAES(data,salt):
     if not salt:
         return data
@@ -39,7 +39,6 @@ headers = {
     'Cache-Control': 'max-age=0',
     'Connection': 'keep-alive',
     'Content-Type': 'application/x-www-form-urlencoded',
-    # 'Cookie': 'org.springframework.web.servlet.i18n.CookieLocaleResolver.LOCALE=zh_CN; route=344d0012ba2e8536ed53d954a6c3aeb0; JSESSIONID_PERSON=IO29QYBq20_g_ubQJCkAAXPftZxjyfl4PZsGHPh-z9hfDmJP4zSv!-154982064; MOD_AUTH_CAS=MOD_AUTH_ST-29051-EMrchpvxNgoz77lZ2TjX1708277203781-WgEd-cas; JSESSIONID_auth=UXO9QZAhn0c5nB9a1ZHOpquUA6qXZYWKf2_7n5W_5vD7qIjYR-7R!-272030971',
     'DNT': '1',
     'Origin': 'https://authserver.szu.edu.cn',
     'Referer': 'https://authserver.szu.edu.cn/authserver/login',
@@ -53,10 +52,13 @@ headers = {
     'sec-ch-ua-mobile': '?0',
     'sec-ch-ua-platform': '"Windows"',
 }
+# 获取原始网页，以得到某些需要的参数
 html=session.get('https://authserver.szu.edu.cn/authserver/login',headers=headers)
 html_doc=html.text
 soup = BeautifulSoup(html_doc, 'html.parser')
+# 从网页中提取加密密码的盐值
 salt=soup.find(id="pwdDefaultEncryptSalt")["value"]
+# 登录请求的参数
 data={
     'username':username,
     'password':encryptAES(password,salt),
@@ -66,9 +68,10 @@ data={
     '_eventId': 'submit',
     'rmShown': soup.find('input', {'name': 'rmShown'})["value"]
 }
+# 加入特定cookies
 cookies = html.cookies.get_dict()
 cookies['org.springframework.web.servlet.i18n.CookieLocaleResolver.LOCALE']='zh_CN'
-# print(data)
+# 发送登陆请求
 loginreq=session.post('https://authserver.szu.edu.cn/authserver/login',data=data,headers=headers,cookies=cookies)
 
 #your code here
