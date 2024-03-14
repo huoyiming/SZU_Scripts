@@ -121,8 +121,8 @@ try:
                 "topic": pushtopic
                 }
             print(message)
-            push=requests.post('https://www.pushplus.plus/send',data=data)
-            print(push.text)
+            pushreq=requests.post('https://www.pushplus.plus/send',data=data)
+            print(pushreq.text)
         idlist=[i['id'] for i in dist['data']]
         time.sleep(600)
 except Exception as e:
