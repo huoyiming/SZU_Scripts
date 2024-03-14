@@ -7,6 +7,7 @@ from base64 import b64encode
 username=''
 password=''
 
+authserver_url = 'https://authserver.szu.edu.cn'
 # 通过指定的字符集生成特定长度随机字符串，用以AES加密
 _chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678'
 def _rds(len):
@@ -40,8 +41,8 @@ headers = {
     'Connection': 'keep-alive',
     'Content-Type': 'application/x-www-form-urlencoded',
     'DNT': '1',
-    'Origin': 'https://authserver.szu.edu.cn',
-    'Referer': 'https://authserver.szu.edu.cn/authserver/login',
+    'Origin': authserver_url,
+    'Referer': f'{authserver_url}/authserver/login',
     'Sec-Fetch-Dest': 'document',
     'Sec-Fetch-Mode': 'navigate',
     'Sec-Fetch-Site': 'same-origin',
@@ -53,15 +54,16 @@ headers = {
     'sec-ch-ua-platform': '"Windows"',
 }
 # 获取原始网页，以得到某些需要的参数
-html=session.get('https://authserver.szu.edu.cn/authserver/login',headers=headers)
+html=session.get(f'{authserver_url}/authserver/login',headers=headers)
 html_doc=html.text
-soup = BeautifulSoup(html_doc, 'html.parser')
+soup = BeautifulSoup(html_doc, 'lxml')
 # 从网页中提取加密密码的盐值
 salt=soup.find(id="pwdDefaultEncryptSalt")["value"]
 # 登录请求的参数
 data={
     'username':username,
     'password':encryptAES(password,salt),
+    'rememberMe':'on',
     'lt':soup.find('input', {'name': 'lt'})["value"],
     'dllt': 'userNamePasswordLogin',
     'execution': soup.find('input', {'name': 'execution'})["value"],
@@ -72,6 +74,4 @@ data={
 cookies = html.cookies.get_dict()
 cookies['org.springframework.web.servlet.i18n.CookieLocaleResolver.LOCALE']='zh_CN'
 # 发送登陆请求
-loginreq=session.post('https://authserver.szu.edu.cn/authserver/login',data=data,headers=headers,cookies=cookies)
-
-#your code here
+loginreq=session.post(f'{authserver_url}/authserver/login',data=data,headers=headers,cookies=cookies)
