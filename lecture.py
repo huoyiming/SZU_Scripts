@@ -1,4 +1,4 @@
-import random,requests,json,time
+import random,requests,json,time,datetime
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
 from bs4 import BeautifulSoup
@@ -32,6 +32,14 @@ headers = {
     'sec-ch-ua-platform': '"Windows"',
 }
 try:
+    week_list = ["星期一","星期二","星期三","星期四","星期五","星期六","星期日"]
+    def time2day(time):
+        try:
+            time=time.split(' ')[0].split('-')
+            return week_list[datetime.date(int(time[0]), int(time[1]), int(time[2])).weekday()]
+        except:
+            return '转换失败'
+
     # 通过指定的字符集生成特定长度随机字符串，用以AES加密
     _chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678'
     def _rds(len):
@@ -97,18 +105,23 @@ try:
         dist=json.loads(list.text)
         message=''
         for i in dist['data']:
-            # print(i)
             if i['id'] not in idlist:
                 message+=f'''
-            主题: {i['name']}
-            主办单位：{i['deptName']} (id: {i['deptId']})
-            主讲人：{i['teacherName']}
-            报名开始：{i['startRegistration']}
-            报名截止：{i['deadlineRegistration']}
-            讲座开始：{i['lectureStartTime']}
-            讲座结束：{i['lectureEndTime']}
-            级别：{i['lectureType']}
-            状态：{i['status']}
+        <b>主题</b>：{i['name']}<br>
+        <details>
+        <summary>查看简介</summary>
+        <p>{i['introduceOfLecture']}</p>
+        </details>
+        <details><summary>主讲人：{i['teacherName']}</summary><p>{i['introduceOfTeacher']}</p></details>
+        <b>主办单位</b>：{i['deptName']} (id: {i['deptId']})<br>
+        <b>赞助商</b>：{i['nameOfSponsor']}<br>
+        <b>✍️修改时间</b>：{i['createTime']} ({time2day(i['createTime'])})<br>
+        <b>✅报名开始</b>：{i['startRegistration']} ({time2day(i['startRegistration'])})<br>
+        <b>⛔报名截止</b>：{i['deadlineRegistration']} ({time2day(i['deadlineRegistration'])})<br>
+        <b>✨讲座开始</b>：{i['lectureStartTime']} ({time2day(i['lectureStartTime'])})<br>
+        <b>🚶‍♂️讲座结束</b>：{i['lectureEndTime']} ({time2day(i['lectureEndTime'])})<br>
+        <b>级别</b>：{i['lectureType']}<br>
+        <b>🖥️状态</b>：{i['status']}<br><br>
 
             '''
                 push=True
@@ -117,7 +130,7 @@ try:
                 "token": pushtoken,
                 "title": "领航讲座更新啦",
                 "content": message,
-                "template": "txt",
+                "template": "html",
                 "topic": pushtopic
                 }
             print(message)
