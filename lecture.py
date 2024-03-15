@@ -107,6 +107,7 @@ try:
         for i in dist['data']:
             if i['id'] not in idlist:
                 message+=f'''
+        <div style="white-space: nowarp !important;">
         <b>主题</b>：{i['name']}<br>
         <details>
         <summary>查看简介</summary>
@@ -121,7 +122,7 @@ try:
         <b>✨讲座开始</b>：{i['lectureStartTime']} ({time2day(i['lectureStartTime'])})<br>
         <b>🚶‍♂️讲座结束</b>：{i['lectureEndTime']} ({time2day(i['lectureEndTime'])})<br>
         <b>级别</b>：{i['lectureType']}<br>
-        <b>🖥️状态</b>：{i['status']}<br><br>
+        <b>🖥️状态</b>：{i['status']}<br><br></div>
 
             '''
                 push=True
