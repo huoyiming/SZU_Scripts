@@ -94,11 +94,16 @@ try:
 
     auth()# 登陆
     idlist=[]
+    try:
+        with open('id.json','r+') as listfile:
+            idlist=json.loads(listfile.read())
+    except:
+        pass
     while True:
         push = False
         try:
             session.get('https://lecture.webvpn.szu.edu.cn/')
-            list=session.get('https://lecture.webvpn.szu.edu.cn/tLectureSignUp/list')
+            list=session.get('https://lecture.webvpn.szu.edu.cn/tLectureSignUp/list?page=1&limit=5')
         except Exception as e:
             requests.get(f'http://www.pushplus.plus/send?token={pushtoken}&title=运行出错&content={str(e)}\n正在尝试重新认证&template=txt')
             auth()
@@ -106,6 +111,7 @@ try:
         message=''
         for i in dist['data']:
             if i['id'] not in idlist:
+                lecinfo=json.loads(session.get(f'https://lecture.webvpn.szu.edu.cn/lectureClassroomSignUp/list?lectureId={i["id"]}').text)['data'][0]
                 message+=f'''
         <div style="white-space: nowarp !important;">
         <b>主题</b>：{i['name']}<br>
@@ -116,11 +122,13 @@ try:
         <details><summary>主讲人：{i['teacherName']}</summary><p>{i['introduceOfTeacher']}</p></details>
         <b>主办单位</b>：{i['deptName']} (id: {i['deptId']})<br>
         <b>赞助商</b>：{i['nameOfSponsor']}<br>
+        <b>📌地点</b>：{lecinfo['campus']}{lecinfo['building']}{lecinfo['roomNumber']}<br>
         <b>✍️修改时间</b>：{i['createTime']} ({time2day(i['createTime'])})<br>
         <b>✅报名开始</b>：{i['startRegistration']} ({time2day(i['startRegistration'])})<br>
         <b>⛔报名截止</b>：{i['deadlineRegistration']} ({time2day(i['deadlineRegistration'])})<br>
         <b>✨讲座开始</b>：{i['lectureStartTime']} ({time2day(i['lectureStartTime'])})<br>
         <b>🚶‍♂️讲座结束</b>：{i['lectureEndTime']} ({time2day(i['lectureEndTime'])})<br>
+        <b>😎空余名额</b>：{lecinfo['remainSeats']} (总名额：{lecinfo['seatNum']} 内定名额：{lecinfo['reservedSeats']})<br>
         <b>级别</b>：{i['lectureType']}<br>
         <b>🖥️状态</b>：{i['status']}<br><br></div>
 
@@ -138,6 +146,9 @@ try:
             pushreq=requests.post('https://www.pushplus.plus/send',data=data)
             print(pushreq.text)
         idlist=[i['id'] for i in dist['data']]
+        with open('id.json','w+') as listfile:
+            listfile.write(json.dumps(idlist))
+        
         time.sleep(600)
 except Exception as e:
     requests.get(f'http://www.pushplus.plus/send?token={pushtoken}&title=运行出错&content={str(e)}&template=txt')
