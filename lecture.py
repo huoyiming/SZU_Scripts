@@ -104,10 +104,13 @@ try:
         try:
             session.get('https://lecture.webvpn.szu.edu.cn/')
             list=session.get('https://lecture.webvpn.szu.edu.cn/tLectureSignUp/list?page=1&limit=5')
+            dist=json.loads(list.text)
         except Exception as e:
             requests.get(f'http://www.pushplus.plus/send?token={pushtoken}&title=运行出错&content={str(e)}\n正在尝试重新认证&template=txt')
             auth()
-        dist=json.loads(list.text)
+            session.get('https://lecture.webvpn.szu.edu.cn/')
+            list=session.get('https://lecture.webvpn.szu.edu.cn/tLectureSignUp/list?page=1&limit=5')
+            dist=json.loads(list.text)
         message=''
         for i in dist['data']:
             if i['id'] not in idlist:
