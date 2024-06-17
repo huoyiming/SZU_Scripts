@@ -9,15 +9,15 @@ password=''
 
 authserver_url = 'https://authserver.szu.edu.cn'
 # 通过指定的字符集生成特定长度随机字符串，用以AES加密
-_chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678'
-def _rds(len):
+aeschars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678'
+def randomString(len):
     retStr = ''
     for i in range(len):
-        retStr += random.choice(_chars)
+        retStr += random.choice(aeschars)
     return retStr
 
 # AES加密函数
-def _gas(data, key0, iv0):
+def getAesString(data, key0, iv0):
     key0 = key0.strip()
     key = key0.encode('utf-8')
     iv = iv0.encode('utf-8')
@@ -30,7 +30,7 @@ def encryptAES(data,salt):
     if not salt:
         return data
     else:
-        encrypted = _gas(_rds(64)+data, salt, _rds(16))
+        encrypted = getAesString(randomString(64)+data, salt, randomString(16))
         return encrypted
     
 session = requests.session()
@@ -58,14 +58,16 @@ html=session.get(f'{authserver_url}/authserver/login',headers=headers)
 html_doc=html.text
 soup = BeautifulSoup(html_doc, 'lxml')
 # 从网页中提取加密密码的盐值
-salt=soup.find(id="pwdDefaultEncryptSalt")["value"]
+salt=soup.find(id="pwdEncryptSalt")["value"]
 # 登录请求的参数
 data={
     'username':username,
     'password':encryptAES(password,salt),
     'rememberMe':'on',
     'lt':soup.find('input', {'name': 'lt'})["value"],
-    'dllt': 'userNamePasswordLogin',
+    'dllt': soup.find('input', {'name': 'dllt'})["value"],
+    'captcha':'',
+    'cllt':'userNameLogin',
     'execution': soup.find('input', {'name': 'execution'})["value"],
     '_eventId': 'submit',
     'rmShown': soup.find('input', {'name': 'rmShown'})["value"]
